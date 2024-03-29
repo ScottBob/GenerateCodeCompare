@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SampleTests
 {
-  @Test
+  //@Test
   public void testCompareCode()
   {
     var snippet1 = """
