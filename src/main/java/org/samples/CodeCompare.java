@@ -27,7 +27,7 @@ public class CodeCompare implements Verifiable {
             } else if (line.isModified()) {
                 for (Line.Piece piece : line.getPieces().where(p -> p.state() != State.ADDED)) {
                     if (piece.state() == State.REMOVED) {
-                        text.append("<b>%s</b>".formatted(piece.asHtml()));
+                        text.append("<b style=\"color: red\">%s</b>".formatted(piece.asHtml()));
                     } else {
                         text.append(piece.asHtml());
                     }
@@ -40,12 +40,35 @@ public class CodeCompare implements Verifiable {
             if (line.isUnchanged()) {
                 text.append(line.getPieces().first().asHtml()).append("\n");
             } else if (line.isAdded()) {
-                text.append("<b>%s</b>\n".formatted(line.getPieces().first().asHtml()));
+                text.append("<b style=\"color: green\">%s</b>\n".formatted(line.getPieces().first().asHtml()));
             } else if (line.isModified()) {
                 for (Line.Piece piece : line.getPieces()) {
                     if (piece.state() == State.REMOVED) {
-                        text.append("<s>%s</s> ".formatted(piece.asHtml()));
+                        text.append("<s style=\"color: red\">%s</s> ".formatted(piece.asHtml()));
                     } else if (piece.state() == State.ADDED) {
+                        text.append("<b style=\"color: green\">%s</b>".formatted(piece.asHtml()));
+                    } else {
+                        text.append(piece.asHtml());
+                    }
+                }
+                text.append("\n");
+            }
+        }
+        // showCompletedStep(comparison, text);
+        text.append(getEnd());
+        return new CodeCompare(text.toString());
+    }
+
+    private static void showCompletedStep(List<Line> comparison, StringBuffer text) {
+        text.append(getMiddle());
+        for (Line line : comparison) {
+            if (line.isUnchanged()) {
+                text.append(line.getPieces().first().asHtml()).append("\n");
+            } else if (line.isAdded()) {
+                text.append("<b>%s</b>\n".formatted(line.getPieces().first().asHtml()));
+            } else if (line.isModified()) {
+                for (Line.Piece piece : line.getPieces().where(p -> p.state() != State.REMOVED)) {
+                    if (piece.state() == State.ADDED) {
                         text.append("<b>%s</b>".formatted(piece.asHtml()));
                     } else {
                         text.append(piece.asHtml());
@@ -54,21 +77,19 @@ public class CodeCompare implements Verifiable {
                 text.append("\n");
             }
         }
-        text.append(getEnd());
-        return new CodeCompare(text.toString());
     }
 
     private static String getMiddle() {
         return """
                 </pre>
                 # ⇓
-                <pre>
+                <pre style="color: gray">
                 """;
     }
 
     private static String getStart() {
         return """
-                <pre>
+                <pre style="color: gray">
                 """;
     }
 
