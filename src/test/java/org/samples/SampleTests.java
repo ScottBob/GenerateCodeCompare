@@ -11,6 +11,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@UseReporter(QuietReporter.class)
 public class SampleTests
 {
   //@Test
@@ -64,10 +65,9 @@ public class SampleTests
            }
           """;
     var diff = CodeCompare.diffStrings(snippet1, snippet2);
-    Approvals.verifyAll("", diff);
+    Approvals.verify(CodeCompare.generateMarkdown(diff));
   }
   @Test
-  @UseReporter(QuietReporter.class)
   public void testCreateMarkdown()
   {
     var comparison = List.of(

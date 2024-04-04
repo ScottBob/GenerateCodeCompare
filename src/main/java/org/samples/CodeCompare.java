@@ -109,22 +109,16 @@ public class CodeCompare implements Verifiable {
         return patch;
     }
 
-    public static List<String> diffStrings(String before, String after) {
+    public static List<Line> diffStrings(String before, String after) {
         List<String> original = Arrays.asList(before.split("\n"));
         List<String> revised = Arrays.asList(after.split("\n"));
-        Patch<String> patch = DiffUtils.diff(original, revised);
+        Patch<String> patch = DiffUtils.diff(original, revised, true);
         List<String> diffs = new ArrayList<>();
+        List<Line> diffs1 = new ArrayList<>();
 
         int originalIndex = 0, revisedIndex = 0;
 
         for (var delta : patch.getDeltas()) {
-            // Handle unchanged lines before the delta
-            while (originalIndex < delta.getSource().getPosition()) {
-                diffs.add("  " + original.get(originalIndex));
-                originalIndex++;
-                revisedIndex++;
-            }
-
             // Handle the delta
             switch (delta.getType()) {
                 case DELETE:
@@ -132,26 +126,30 @@ public class CodeCompare implements Verifiable {
                     originalIndex += delta.getSource().getLines().size();
                     break;
                 case INSERT:
-                    delta.getTarget().getLines().forEach(line -> diffs.add("+ " + line));
+                    delta.getTarget().getLines().forEach(line -> diffs1.add(Line.add(line)));
                     revisedIndex += delta.getTarget().getLines().size();
                     break;
-                case CHANGE:
-                    delta.getSource().getLines().forEach(line -> diffs.add("- " + line));
+                case CHANGE: {
+                    List<String> lines = delta.getSource().getLines();
+                    List<String> lines1 = delta.getTarget().getLines();
+                    lines.forEach(line -> diffs.add("- " + line));
                     originalIndex += delta.getSource().getLines().size();
-                    delta.getTarget().getLines().forEach(line -> diffs.add("+ " + line));
+                    lines1.forEach(line -> diffs1.add(Line.add(line)));
                     revisedIndex += delta.getTarget().getLines().size();
+                }
+                    break;
+                case EQUAL: {
+                    List<String> lines = delta.getSource().getLines();
+                    List<String> lines1 = delta.getTarget().getLines();
+                    originalIndex += delta.getSource().getLines().size();
+                    lines1.forEach(line -> diffs1.add(Line.of(line)));
+                    revisedIndex += delta.getTarget().getLines().size();
+                }
                     break;
             }
         }
 
-        // Handle any remaining unchanged lines after the last delta
-        while (originalIndex < original.size()) {
-            diffs.add("  " + original.get(originalIndex));
-            originalIndex++;
-            revisedIndex++;
-        }
-
-        return diffs;
+        return diffs1;
     }
 
     @Override
