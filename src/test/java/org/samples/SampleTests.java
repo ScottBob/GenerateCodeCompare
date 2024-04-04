@@ -1,6 +1,7 @@
 package org.samples;
 
 
+import com.github.difflib.patch.Patch;
 import org.approvaltests.Approvals;
 import org.approvaltests.reporters.QuietReporter;
 import org.approvaltests.reporters.UseReporter;
@@ -37,6 +38,33 @@ public class SampleTests
            }
           """;
     Approvals.verify(CodeCompare.generateMarkdown(snippet1, snippet2));
+  }
+  @Test
+  public void testDiffCode()
+  {
+    var snippet1 = """
+           public void sendOutSeniorDiscounts(DataBase database, MailServer mailServer) {
+              List<Customer> seniorCustomers = database.getSeniorCustomers();
+              for (Customer customer : seniorCustomers) {
+                  Discount seniorDiscount = getSeniorDiscount();
+                  String message = generateDiscountMessage(customer, seniorDiscount);
+                  mailServer.sendMessage(customer, message);
+              }
+          } 
+          """;
+    var snippet2 = """
+           public void sendOutSeniorDiscounts(DataBase database, MailServer mailServer) {
+              Loader<List<Customer>> seniorCustomerLoader = () -> database.getSeniorCustomers();
+              List<Customer> seniorCustomers = database.getSeniorCustomers() seniorCustomerLoader.load();
+              for (Customer customer : seniorCustomers) {
+                  Discount seniorDiscount = getSeniorDiscount();
+                  String message = generateDiscountMessage(customer, seniorDiscount);
+                  mailServer.sendMessage(customer, message);
+              }
+           }
+          """;
+    Patch<String> diff = CodeCompare.createDiff(snippet1, snippet2);
+    Approvals.verifyAll("", diff.getDeltas());
   }
   @Test
   @UseReporter(QuietReporter.class)

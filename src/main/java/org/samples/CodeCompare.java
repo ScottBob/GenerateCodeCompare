@@ -1,10 +1,12 @@
 package org.samples;
 
+import com.github.difflib.DiffUtils;
+import com.github.difflib.patch.Patch;
 import org.approvaltests.core.Options;
 import org.approvaltests.core.Verifiable;
 import org.approvaltests.core.VerifyParameters;
 
-import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 public class CodeCompare implements Verifiable {
@@ -97,6 +99,13 @@ public class CodeCompare implements Verifiable {
         return """
                 </pre>
                 """;
+    }
+
+    public static Patch<String> createDiff(String snippet1, String snippet2) {
+        var lines1 = Arrays.asList(snippet1.split("\n"));
+        var lines2 = Arrays.asList(snippet2.split("\n"));
+        var patch = DiffUtils.diff(lines1, lines2);
+        return patch;
     }
 
     @Override
