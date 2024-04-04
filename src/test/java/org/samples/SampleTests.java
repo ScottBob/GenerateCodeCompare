@@ -50,7 +50,7 @@ public class SampleTests
                   String message = generateDiscountMessage(customer, seniorDiscount);
                   mailServer.sendMessage(customer, message);
               }
-          } 
+           } 
           """;
     var snippet2 = """
            public void sendOutSeniorDiscounts(DataBase database, MailServer mailServer) {
@@ -63,8 +63,8 @@ public class SampleTests
               }
            }
           """;
-    Patch<String> diff = CodeCompare.createDiff(snippet1, snippet2);
-    Approvals.verifyAll("", diff.getDeltas());
+    var diff = CodeCompare.diffStrings(snippet1, snippet2);
+    Approvals.verifyAll("", diff);
   }
   @Test
   @UseReporter(QuietReporter.class)

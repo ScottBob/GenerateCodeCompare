@@ -6,6 +6,7 @@ import org.approvaltests.core.Options;
 import org.approvaltests.core.Verifiable;
 import org.approvaltests.core.VerifyParameters;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -106,6 +107,51 @@ public class CodeCompare implements Verifiable {
         var lines2 = Arrays.asList(snippet2.split("\n"));
         var patch = DiffUtils.diff(lines1, lines2);
         return patch;
+    }
+
+    public static List<String> diffStrings(String before, String after) {
+        List<String> original = Arrays.asList(before.split("\n"));
+        List<String> revised = Arrays.asList(after.split("\n"));
+        Patch<String> patch = DiffUtils.diff(original, revised);
+        List<String> diffs = new ArrayList<>();
+
+        int originalIndex = 0, revisedIndex = 0;
+
+        for (var delta : patch.getDeltas()) {
+            // Handle unchanged lines before the delta
+            while (originalIndex < delta.getSource().getPosition()) {
+                diffs.add("  " + original.get(originalIndex));
+                originalIndex++;
+                revisedIndex++;
+            }
+
+            // Handle the delta
+            switch (delta.getType()) {
+                case DELETE:
+                    delta.getSource().getLines().forEach(line -> diffs.add("- " + line));
+                    originalIndex += delta.getSource().getLines().size();
+                    break;
+                case INSERT:
+                    delta.getTarget().getLines().forEach(line -> diffs.add("+ " + line));
+                    revisedIndex += delta.getTarget().getLines().size();
+                    break;
+                case CHANGE:
+                    delta.getSource().getLines().forEach(line -> diffs.add("- " + line));
+                    originalIndex += delta.getSource().getLines().size();
+                    delta.getTarget().getLines().forEach(line -> diffs.add("+ " + line));
+                    revisedIndex += delta.getTarget().getLines().size();
+                    break;
+            }
+        }
+
+        // Handle any remaining unchanged lines after the last delta
+        while (originalIndex < original.size()) {
+            diffs.add("  " + original.get(originalIndex));
+            originalIndex++;
+            revisedIndex++;
+        }
+
+        return diffs;
     }
 
     @Override
