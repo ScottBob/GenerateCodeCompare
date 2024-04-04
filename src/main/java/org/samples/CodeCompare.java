@@ -3,6 +3,8 @@ package org.samples;
 import com.github.difflib.DiffUtils;
 import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Patch;
+import com.github.difflib.text.DiffRow;
+import com.github.difflib.text.DiffRowGenerator;
 import org.approvaltests.core.Options;
 import org.approvaltests.core.Verifiable;
 import org.approvaltests.core.VerifyParameters;
@@ -117,6 +119,24 @@ public class CodeCompare implements Verifiable {
         List<String> diffs = new ArrayList<>();
         List<Line> diffs1 = new ArrayList<>();
 
+        DiffRowGenerator generator = DiffRowGenerator.create()
+                .showInlineDiffs(true)
+                .inlineDiffByWord(true)
+                .oldTag(f -> "~~")
+                .newTag(f -> "^^")
+                .build();
+        List<DiffRow> diffRows = generator.generateDiffRows(original, revised);
+        for (DiffRow diffRow : diffRows) {
+            if (diffRow.getOldLine().equals(diffRow.getNewLine())) {
+                diffs1.add(Line.of(diffRow.toString()));
+            } else {
+                diffs1.add(Line.of("").remove(diffRow.getOldLine()));
+                diffs1.add(Line.add(diffRow.getNewLine()));
+            }
+        }
+        return diffs1;
+
+        /*
         for (var delta : patch.getDeltas()) {
             // Handle the delta
             switch (delta.getType()) {
@@ -139,6 +159,8 @@ public class CodeCompare implements Verifiable {
         }
 
         return diffs1;
+
+         */
     }
 
     private static List<Line> handleChanges(AbstractDelta<String> delta) {
