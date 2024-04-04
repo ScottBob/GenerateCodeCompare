@@ -1,6 +1,7 @@
 package org.samples;
 
 import com.github.difflib.DiffUtils;
+import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Patch;
 import org.approvaltests.core.Options;
 import org.approvaltests.core.Verifiable;
@@ -116,40 +117,37 @@ public class CodeCompare implements Verifiable {
         List<String> diffs = new ArrayList<>();
         List<Line> diffs1 = new ArrayList<>();
 
-        int originalIndex = 0, revisedIndex = 0;
-
         for (var delta : patch.getDeltas()) {
             // Handle the delta
             switch (delta.getType()) {
                 case DELETE:
                     delta.getSource().getLines().forEach(line -> diffs.add("- " + line));
-                    originalIndex += delta.getSource().getLines().size();
                     break;
                 case INSERT:
                     delta.getTarget().getLines().forEach(line -> diffs1.add(Line.add(line)));
-                    revisedIndex += delta.getTarget().getLines().size();
                     break;
                 case CHANGE: {
-                    List<String> lines = delta.getSource().getLines();
-                    List<String> lines1 = delta.getTarget().getLines();
-                    lines.forEach(line -> diffs.add("- " + line));
-                    originalIndex += delta.getSource().getLines().size();
-                    lines1.forEach(line -> diffs1.add(Line.add(line)));
-                    revisedIndex += delta.getTarget().getLines().size();
+                    diffs1.addAll(handleChanges(delta));
                 }
                     break;
                 case EQUAL: {
-                    List<String> lines = delta.getSource().getLines();
                     List<String> lines1 = delta.getTarget().getLines();
-                    originalIndex += delta.getSource().getLines().size();
                     lines1.forEach(line -> diffs1.add(Line.of(line)));
-                    revisedIndex += delta.getTarget().getLines().size();
                 }
                     break;
             }
         }
 
         return diffs1;
+    }
+
+    private static List<Line> handleChanges(AbstractDelta<String> delta) {
+        List<Line> changes = new ArrayList<>();
+        List<String> lines = delta.getSource().getLines();
+        List<String> lines1 = delta.getTarget().getLines();
+        lines.forEach(line -> changes.add(Line.of("").remove(line)));
+        lines1.forEach(line -> changes.add(Line.add(line)));
+        return changes;
     }
 
     @Override
