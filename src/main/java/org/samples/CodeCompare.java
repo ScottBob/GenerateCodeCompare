@@ -1,7 +1,10 @@
 package org.samples;
 
 import com.github.difflib.DiffUtils;
+import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Patch;
+import com.github.difflib.text.DiffRow;
+import com.github.difflib.text.DiffRowGenerator;
 import org.approvaltests.core.Options;
 import org.approvaltests.core.Verifiable;
 import org.approvaltests.core.VerifyParameters;
@@ -109,49 +112,64 @@ public class CodeCompare implements Verifiable {
         return patch;
     }
 
-    public static List<String> diffStrings(String before, String after) {
+    public static List<Line> diffStrings(String before, String after) {
         List<String> original = Arrays.asList(before.split("\n"));
         List<String> revised = Arrays.asList(after.split("\n"));
-        Patch<String> patch = DiffUtils.diff(original, revised);
+        Patch<String> patch = DiffUtils.diff(original, revised, true);
         List<String> diffs = new ArrayList<>();
+        List<Line> diffs1 = new ArrayList<>();
 
-        int originalIndex = 0, revisedIndex = 0;
-
-        for (var delta : patch.getDeltas()) {
-            // Handle unchanged lines before the delta
-            while (originalIndex < delta.getSource().getPosition()) {
-                diffs.add("  " + original.get(originalIndex));
-                originalIndex++;
-                revisedIndex++;
+        DiffRowGenerator generator = DiffRowGenerator.create()
+                .showInlineDiffs(true)
+                .inlineDiffByWord(true)
+                .oldTag(f -> "~~")
+                .newTag(f -> "^^")
+                .build();
+        List<DiffRow> diffRows = generator.generateDiffRows(original, revised);
+        for (DiffRow diffRow : diffRows) {
+            if (diffRow.getOldLine().equals(diffRow.getNewLine())) {
+                diffs1.add(Line.of(diffRow.toString()));
+            } else {
+                diffs1.add(Line.of("").remove(diffRow.getOldLine()));
+                diffs1.add(Line.add(diffRow.getNewLine()));
             }
+        }
+        return diffs1;
 
+        /*
+        for (var delta : patch.getDeltas()) {
             // Handle the delta
             switch (delta.getType()) {
                 case DELETE:
                     delta.getSource().getLines().forEach(line -> diffs.add("- " + line));
-                    originalIndex += delta.getSource().getLines().size();
                     break;
                 case INSERT:
-                    delta.getTarget().getLines().forEach(line -> diffs.add("+ " + line));
-                    revisedIndex += delta.getTarget().getLines().size();
+                    delta.getTarget().getLines().forEach(line -> diffs1.add(Line.add(line)));
                     break;
-                case CHANGE:
-                    delta.getSource().getLines().forEach(line -> diffs.add("- " + line));
-                    originalIndex += delta.getSource().getLines().size();
-                    delta.getTarget().getLines().forEach(line -> diffs.add("+ " + line));
-                    revisedIndex += delta.getTarget().getLines().size();
+                case CHANGE: {
+                    diffs1.addAll(handleChanges(delta));
+                }
+                    break;
+                case EQUAL: {
+                    List<String> lines1 = delta.getTarget().getLines();
+                    lines1.forEach(line -> diffs1.add(Line.of(line)));
+                }
                     break;
             }
         }
 
-        // Handle any remaining unchanged lines after the last delta
-        while (originalIndex < original.size()) {
-            diffs.add("  " + original.get(originalIndex));
-            originalIndex++;
-            revisedIndex++;
-        }
+        return diffs1;
 
-        return diffs;
+         */
+    }
+
+    private static List<Line> handleChanges(AbstractDelta<String> delta) {
+        List<Line> changes = new ArrayList<>();
+        List<String> lines = delta.getSource().getLines();
+        List<String> lines1 = delta.getTarget().getLines();
+        lines.forEach(line -> changes.add(Line.of("").remove(line)));
+        lines1.forEach(line -> changes.add(Line.add(line)));
+        return changes;
     }
 
     @Override
