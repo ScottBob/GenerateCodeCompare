@@ -53,4 +53,11 @@ public class Line {
             return text.replace("<", "&lt;");
         }
     }
+
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+        pieces.forEach(piece -> result.append(piece.text).append(" (").append(piece.state).append(")\n"));
+        return result.toString();
+    }
 }
