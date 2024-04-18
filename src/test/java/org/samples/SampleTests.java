@@ -86,7 +86,7 @@ public class SampleTests
   public void testModifiedLine() {
     String start = "  List<Customer> seniorCustomers = database.getSeniorCustomers();";
     String end = "  List<Customer> seniorCustomers = database.getSeniorCustomers() seniorCustomerLoader.load();";
-    Line result = Line.of("  List<Customer> seniorCustomers = ").remove("database.getSeniorCustomers()").replace("seniorCustomerLoader.load();");
+    Line result = Line.of("  List<Customer> seniorCustomers = ").remove("database.getSeniorCustomers();").replace("seniorCustomerLoader.load();");
     Line actual = Diff.createModifiedLine(start, end);
     assertEquals(result.toString(), actual.toString());
   }

@@ -39,45 +39,6 @@ public class Diff {
 
     }
 
-    public static Line createModifiedLine(String start, String end) {
-        String initialPart = start.substring(0, start.indexOf("="));
-        String startRemainingPart = start.replace(initialPart, "");
-        String endRemainingPart = end.replace(initialPart, "");
-
-        Line line = Line.of(initialPart)
-                .remove(startRemainingPart)
-                .replace(endRemainingPart);
-
-        return line;
-//        Line line = Line.of("");
-//        // Break both strings into words
-//        String[] startWords = start.split("\\s+");
-//        String[] endWords = end.split("\\s+");
-//        // Compare word by word. If they are the same, add it to the line using Line.and(), if they are different remove the startWords and add the endWords
-//
-//        int minLength = Math.min(startWords.length, endWords.length);
-//        for (int i = 0; i < minLength; i++) {
-//            if (startWords[i].equals(endWords[i])) {
-//                line = line.and(startWords[i]);
-//            } else {
-//                line = line.remove(startWords[i]);
-//                line = line.and(endWords[i]);
-//            }
-//        }
-//// add remaining words from the longer string
-//        if (startWords.length < endWords.length) {
-//            for (int i = minLength; i < endWords.length; i++) {
-//                line = line.and(endWords[i]);
-//            }
-//        } else if (startWords.length > endWords.length) {
-//            for (int i = minLength; i < startWords.length; i++) {
-//                line = line.remove(startWords[i]);
-//            }
-//        }
-//
-//        return line.and("\n");
-    }
-
     private static String removeTrailingInfo(String line) {
         // Remove everything after the "// "
         return line.replaceAll("//.*$", "");
@@ -98,14 +59,88 @@ public class Diff {
         return lines.get(index);
     }
 
-    public static List<Line> handleChanges(AbstractDelta<String> delta) {
-        List<String> startingLines = delta.getSource().getLines();
-        List<String> endingLines = delta.getTarget().getLines();
-        List<Line> changes = new ArrayList<>();
-        List<String> lines = delta.getSource().getLines();
-        List<String> lines1 = delta.getTarget().getLines();
-        lines.forEach(line -> changes.add(Line.of("").remove(line)));
-        lines1.forEach(line -> changes.add(Line.add(line)));
+
+
+    /****************************************/
+
+
+    public static Line createModifiedLine(String start, String end) {
+        String[] startWords = start.split("\\s+");
+        String[] endWords = end.split("\\s+");
+
+        List<Change> changes = calculateChanges(startWords, endWords);
+
+        Line line = new Line("", State.CONSTANT);
+        for (Change change : changes) {
+            switch (change.type) {
+                case ADDED:
+                    line.replace(change.text);
+                    break;
+                case REMOVED:
+                    line.remove(change.text);
+                    break;
+                case CONSTANT:
+                    line.and(change.text);
+                    break;
+            }
+        }
+
+        return line;
+    }
+
+    private static List<Change> calculateChanges(String[] startWords, String[] endWords) {
+        int startLength = startWords.length;
+        int endLength = endWords.length;
+        int[][] dp = new int[startLength + 1][endLength + 1];
+
+        // Calculate the length of the longest common subsequence (LCS)
+        for (int i = 1; i <= startLength; i++) {
+            for (int j = 1; j <= endLength; j++) {
+                if (startWords[i - 1].equals(endWords[j - 1])) {
+                    dp[i][j] = dp[i - 1][j - 1] + 1;
+                } else {
+                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+        }
+
+        // Trace back the LCS to find changes
+        List<Change> changes = new ArrayList<>();
+        int i = startLength, j = endLength;
+        while (i > 0 && j > 0) {
+            if (startWords[i - 1].equals(endWords[j - 1])) {
+                changes.add(0, new Change(State.CONSTANT, startWords[i - 1]));
+                i--;
+                j--;
+            } else if (dp[i - 1][j] >= dp[i][j - 1]) {
+                changes.add(0, new Change(State.REMOVED, startWords[i - 1]));
+                i--;
+            } else {
+                changes.add(0, new Change(State.ADDED, endWords[j - 1]));
+                j--;
+            }
+        }
+
+        while (i > 0) {
+            changes.add(0, new Change(State.REMOVED, startWords[i - 1]));
+            i--;
+        }
+        while (j > 0) {
+            changes.add(0, new Change(State.ADDED, endWords[j - 1]));
+            j--;
+        }
+
         return changes;
     }
+
+    private static class Change {
+        State type;
+        String text;
+
+        public Change(State type, String text) {
+            this.type = type;
+            this.text = text;
+        }
+    }
 }
+
