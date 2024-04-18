@@ -1,7 +1,6 @@
 package org.samples;
 
 
-import com.github.difflib.patch.Patch;
 import org.approvaltests.Approvals;
 import org.approvaltests.reporters.QuietReporter;
 import org.approvaltests.reporters.UseReporter;
@@ -45,7 +44,7 @@ public class SampleTests
   {
     var snippet1 = """
            public void sendOutSeniorDiscounts(DataBase database, MailServer mailServer) {
-              List<Customer> seniorCustomers = database.getSeniorCustomers();
+              List<Customer> seniorCustomers = database.getSeniorCustomers(); // *
               for (Customer customer : seniorCustomers) {
                   Discount seniorDiscount = getSeniorDiscount();
                   String message = generateDiscountMessage(customer, seniorDiscount);
@@ -55,8 +54,8 @@ public class SampleTests
           """;
     var snippet2 = """
            public void sendOutSeniorDiscounts(DataBase database, MailServer mailServer) {
-              Loader<List<Customer>> seniorCustomerLoader = () -> database.getSeniorCustomers();
-              List<Customer> seniorCustomers = database.getSeniorCustomers() seniorCustomerLoader.load();
+              Loader<List<Customer>> seniorCustomerLoader = () -> database.getSeniorCustomers(); // +
+              List<Customer> seniorCustomers = database.getSeniorCustomers() seniorCustomerLoader.load(); // *
               for (Customer customer : seniorCustomers) {
                   Discount seniorDiscount = getSeniorDiscount();
                   String message = generateDiscountMessage(customer, seniorDiscount);
@@ -64,7 +63,7 @@ public class SampleTests
               }
            }
           """;
-    var diff = CodeCompare.diffStrings(snippet1, snippet2);
+    var diff = Diff.diffStrings(snippet1, snippet2);
     Approvals.verify(CodeCompare.generateMarkdown(diff));
   }
   @Test
