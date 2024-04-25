@@ -65,8 +65,8 @@ public class Diff {
 
 
     public static Line createModifiedLine(String start, String end) {
-        String[] startWords = start.split("\\s+");
-        String[] endWords = end.split("\\s+");
+        String[] startWords = start.split("(?<=\\s+)");
+        String[] endWords = end.split("(?<=\\s+)");
 
         List<Change> changes = calculateChanges(startWords, endWords);
 
@@ -85,7 +85,7 @@ public class Diff {
             }
         }
 
-        return line;
+        return line.reduce();
     }
 
     private static List<Change> calculateChanges(String[] startWords, String[] endWords) {
