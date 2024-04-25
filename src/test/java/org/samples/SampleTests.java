@@ -18,29 +18,29 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @UseReporter(QuietReporter.class)
 public class SampleTests
 {
-  //@Test
+  @Test
   public void testCompareCode()
   {
     var snippet1 = """
            public void sendOutSeniorDiscounts(DataBase database, MailServer mailServer) {
-              List<Customer> seniorCustomers = database.getSeniorCustomers();
+              List<Customer> seniorCustomers = database.getSeniorCustomers(); // *
               for (Customer customer : seniorCustomers) {
                   Discount seniorDiscount = getSeniorDiscount();
                   String message = generateDiscountMessage(customer, seniorDiscount);
                   mailServer.sendMessage(customer, message);
               }
-          } 
+          }
           """;
     var snippet2 = """
            public void sendOutSeniorDiscounts(DataBase database, MailServer mailServer) {
-              Loader<List<Customer>> seniorCustomerLoader = () -> database.getSeniorCustomers();
-              List<Customer> seniorCustomers = database.getSeniorCustomers() seniorCustomerLoader.load();
+              Loader<List<Customer>> seniorCustomerLoader = () -> database.getSeniorCustomers(); // +
+              List<Customer> seniorCustomers = seniorCustomerLoader.load(); // *
               for (Customer customer : seniorCustomers) {
                   Discount seniorDiscount = getSeniorDiscount();
                   String message = generateDiscountMessage(customer, seniorDiscount);
                   mailServer.sendMessage(customer, message);
               }
-           }
+          }
           """;
     Approvals.verify(CodeCompare.generateMarkdown(snippet1, snippet2));
   }

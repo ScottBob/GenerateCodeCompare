@@ -31,7 +31,7 @@ public class Diff {
                 startIndex++;
                 endIndex++;
             } else {
-                throw new RuntimeException("Unrecognized line:\n" + startLine + "\n" + endLine);
+                throw new RuntimeException("Unrecognized line:\nStart: " + startLine + "\n  End: " + endLine +"\n ChangeLines need to be marked with either a // + - *");
             }
         }
 

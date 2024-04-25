@@ -17,7 +17,8 @@ public class CodeCompare implements Verifiable {
     }
 
     public static CodeCompare generateMarkdown(String snippet1, String snippet2) {
-        return null;
+        List<Line> lines = Diff.diffStrings(snippet1, snippet2);
+        return generateMarkdown(lines);
     }
 
     public static CodeCompare generateMarkdown(List<Line> comparison) {
