@@ -3,7 +3,7 @@ package org.samples;
 import org.lambda.query.Queryable;
 
 public class Line {
-    private final Queryable<Piece> pieces = new Queryable<>(Piece.class);
+    private Queryable<Piece> pieces = new Queryable<>(Piece.class);
 
     public Line(String text, State state) {
         pieces.add(new Piece(text, state));
@@ -46,6 +46,24 @@ public class Line {
 
     public boolean isModified() {
         return 1 < pieces.size();
+    }
+
+    public Line reduce() {
+        var reduced = new Queryable<Piece>();
+        var last = pieces.first();
+        reduced.add(last);
+        for (Piece piece : pieces.skip(1)) {
+            if (piece.state == last.state) {
+                last = new Piece(last.text + piece.text, last.state);
+                reduced.remove(reduced.size()-1);
+                reduced.add(last);
+            } else {
+                last = piece;
+                reduced.add(last);
+            }
+        }
+        pieces = reduced;
+        return this;
     }
 
     public static record Piece(String text, State state) {
