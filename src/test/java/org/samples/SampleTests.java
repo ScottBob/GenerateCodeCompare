@@ -1,9 +1,14 @@
 package org.samples;
 
 
+import com.spun.util.Tuple;
 import org.approvaltests.Approvals;
+import org.approvaltests.core.Options;
+import org.approvaltests.reporters.AutoApproveReporter;
+import org.approvaltests.reporters.DiffMergeReporter;
 import org.approvaltests.reporters.QuietReporter;
 import org.approvaltests.reporters.UseReporter;
+import org.approvaltests.reporters.windows.BeyondCompareReporter;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -40,6 +45,7 @@ public class SampleTests
     Approvals.verify(CodeCompare.generateMarkdown(snippet1, snippet2));
   }
   @Test
+  @UseReporter(BeyondCompareReporter.class)
   public void testDiffCode()
   {
     var snippet1 = """
@@ -55,7 +61,7 @@ public class SampleTests
     var snippet2 = """
            public void sendOutSeniorDiscounts(DataBase database, MailServer mailServer) {
               Loader<List<Customer>> seniorCustomerLoader = () -> database.getSeniorCustomers(); // +
-              List<Customer> seniorCustomers = database.getSeniorCustomers() seniorCustomerLoader.load(); // *
+              List<Customer> seniorCustomers = seniorCustomerLoader.load(); // *
               for (Customer customer : seniorCustomers) {
                   Discount seniorDiscount = getSeniorDiscount();
                   String message = generateDiscountMessage(customer, seniorDiscount);
@@ -83,11 +89,22 @@ public class SampleTests
   }
 
   @Test
+  @UseReporter(DiffMergeReporter.class)
   public void testModifiedLine() {
+    var expected = """
+        List<Customer> seniorCustomers =  (CONSTANT)
+      seniorCustomerLoader.load(); (ADDED)
+      database.getSeniorCustomers(); (REMOVED)
+      seniorCustomerLoader.load(); (ADDED)
+      """;
     String start = "  List<Customer> seniorCustomers = database.getSeniorCustomers();";
-    String end = "  List<Customer> seniorCustomers = database.getSeniorCustomers() seniorCustomerLoader.load();";
-    Line result = Line.of("  List<Customer> seniorCustomers = ").remove("database.getSeniorCustomers();").replace("seniorCustomerLoader.load();");
+    String end = "  List<Customer> seniorCustomers = seniorCustomerLoader.load();";
+    //Line result = Line.of("  List<Customer> seniorCustomers = ").remove("database.getSeniorCustomers();").replace("seniorCustomerLoader.load();");
     Line actual = Diff.createModifiedLine(start, end);
-    assertEquals(result.toString(), actual.toString());
+    Approvals.verify(actual.toString(), new Options().inline(expected));
   }
+
+
+
+
 }
