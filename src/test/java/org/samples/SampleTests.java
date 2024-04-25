@@ -2,6 +2,7 @@ package org.samples;
 
 
 import com.spun.util.Tuple;
+import com.spun.util.io.FileUtils;
 import org.approvaltests.Approvals;
 import org.approvaltests.core.Options;
 import org.approvaltests.reporters.AutoApproveReporter;
@@ -103,6 +104,10 @@ public class SampleTests
     Approvals.verify(actual.toString(), new Options().inline(expected));
   }
 
+//  @Test
+  public void testCreateTemp() {
+    Approvals.verify(CodeCompare.generateMarkdown(FileUtils.readFile("src/test/java/org/samples/a.txt"), FileUtils.readFile("src/test/java/org/samples/b.txt")));
+  }
 
 
 

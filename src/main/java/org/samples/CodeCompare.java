@@ -5,6 +5,7 @@ import com.github.difflib.patch.Patch;
 import org.approvaltests.core.Options;
 import org.approvaltests.core.Verifiable;
 import org.approvaltests.core.VerifyParameters;
+import org.lambda.query.Queryable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,14 +29,17 @@ public class CodeCompare implements Verifiable {
             if (line.isUnchanged()) {
                 text.append(line.getPieces().first().asHtml()).append("\n");
             } else if (line.isModified()) {
-                for (Line.Piece piece : line.getPieces().where(p -> p.state() != State.ADDED)) {
-                    if (piece.state() == State.REMOVED) {
-                        text.append("<b style=\"color: red\">%s</b>".formatted(piece.asHtml()));
-                    } else {
-                        text.append(piece.asHtml());
+                Queryable<Line.Piece> pieces = line.getPieces().where(p -> p.state() != State.ADDED);
+                if (!pieces.isEmpty()) {
+                    for (Line.Piece piece : pieces) {
+                        if (piece.state() == State.REMOVED) {
+                            text.append("<b style=\"color: red\">%s</b>".formatted(piece.asHtml()));
+                        } else {
+                            text.append(piece.asHtml());
+                        }
                     }
+                    text.append("\n");
                 }
-                text.append("\n");
             }
         }
         text.append(getMiddle());

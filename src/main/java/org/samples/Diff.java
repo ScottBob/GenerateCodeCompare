@@ -30,6 +30,9 @@ public class Diff {
                 diffs1.add(createModifiedLine(removeTrailingInfo(startLine), removeTrailingInfo(endLine)));
                 startIndex++;
                 endIndex++;
+            } else if (isLineRemoved(startLine)) {
+                diffs1.add(Line.removed(removeTrailingInfo(startLine)));
+                startIndex++;
             } else {
                 throw new RuntimeException("Unrecognized line:\nStart: " + startLine + "\n  End: " + endLine +"\n ChangeLines need to be marked with either a // + - *");
             }
@@ -37,6 +40,10 @@ public class Diff {
 
         return diffs1;
 
+    }
+
+    private static boolean isLineRemoved(String startLine) {
+        return startLine.trim().endsWith("-");
     }
 
     private static String removeTrailingInfo(String line) {

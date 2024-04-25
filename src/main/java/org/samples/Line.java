@@ -22,6 +22,10 @@ public class Line {
         return this;
     }
 
+    public static Line removed(String text) {
+        return new Line(text, State.REMOVED);
+    }
+
     public Line replace(String text) {
         pieces.add(new Piece(text, State.ADDED));
         return this;
@@ -45,7 +49,7 @@ public class Line {
     }
 
     public boolean isModified() {
-        return 1 < pieces.size();
+        return  pieces.any(p -> p.state != State.CONSTANT);
     }
 
     public Line reduce() {
