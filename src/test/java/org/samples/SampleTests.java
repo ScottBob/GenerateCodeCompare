@@ -93,7 +93,6 @@ public class SampleTests
   public void testModifiedLine() {
     var expected = """
         List<Customer> seniorCustomers =  (CONSTANT)
-      seniorCustomerLoader.load(); (ADDED)
       database.getSeniorCustomers(); (REMOVED)
       seniorCustomerLoader.load(); (ADDED)
       """;

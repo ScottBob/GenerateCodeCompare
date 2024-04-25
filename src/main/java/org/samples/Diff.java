@@ -91,28 +91,19 @@ public class Diff {
     private static List<Change> calculateChanges(String[] startWords, String[] endWords) {
         int startLength = startWords.length;
         int endLength = endWords.length;
-        int[][] dp = new int[startLength + 1][endLength + 1];
-
-        // Calculate the length of the longest common subsequence (LCS)
-        for (int i = 1; i <= startLength; i++) {
-            for (int j = 1; j <= endLength; j++) {
-                if (startWords[i - 1].equals(endWords[j - 1])) {
-                    dp[i][j] = dp[i - 1][j - 1] + 1;
-                } else {
-                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
-                }
-            }
-        }
+        int[][] subsequences = getSubsequences(startWords, endWords, startLength, endLength);
 
         // Trace back the LCS to find changes
         List<Change> changes = new ArrayList<>();
-        int i = startLength, j = endLength;
+        int i = startLength;
+        int j = endLength;
+
         while (i > 0 && j > 0) {
             if (startWords[i - 1].equals(endWords[j - 1])) {
                 changes.add(0, new Change(State.CONSTANT, startWords[i - 1]));
                 i--;
                 j--;
-            } else if (dp[i - 1][j] >= dp[i][j - 1]) {
+            } else if (subsequences[i - 1][j] >= subsequences[i][j - 1]) {
                 changes.add(0, new Change(State.REMOVED, startWords[i - 1]));
                 i--;
             } else {
@@ -129,8 +120,32 @@ public class Diff {
             changes.add(0, new Change(State.ADDED, endWords[j - 1]));
             j--;
         }
-
+        // go through the changes and if the previous is and add and the next is a remove, then swap them
+        for (int k = 0; k < changes.size() - 1; k++) {
+            if (changes.get(k).type == State.ADDED && changes.get(k + 1).type == State.REMOVED) {
+                Change temp = changes.get(k);
+                changes.set(k, changes.get(k + 1));
+                changes.set(k + 1, temp);
+            }
+        }
         return changes;
+    }
+
+    private static int[][] getSubsequences(String[] startWords, String[] endWords, int startLength, int endLength) {
+        int[][] subsequences = new int[startLength + 1][endLength + 1];
+
+
+        // Calculate the length of the longest common subsequence (LCS)
+        for (int i = 1; i <= startLength; i++) {
+            for (int j = 1; j <= endLength; j++) {
+                if (startWords[i - 1].equals(endWords[j - 1])) {
+                    subsequences[i][j] = subsequences[i - 1][j - 1] + 1;
+                } else {
+                    subsequences[i][j] = Math.max(subsequences[i - 1][j], subsequences[i][j - 1]);
+                }
+            }
+        }
+        return subsequences;
     }
 
     private static class Change {
