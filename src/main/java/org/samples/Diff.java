@@ -98,7 +98,7 @@ public class Diff {
     private static List<Change> calculateChanges(String[] startWords, String[] endWords) {
         int startLength = startWords.length;
         int endLength = endWords.length;
-        int[][] subsequences = getSubsequences(startWords, endWords, startLength, endLength);
+        int[][] subsequences = getSubsequences(startWords, endWords);
 
         // Trace back the LCS to find changes
         List<Change> changes = new ArrayList<>();
@@ -138,7 +138,9 @@ public class Diff {
         return changes;
     }
 
-    private static int[][] getSubsequences(String[] startWords, String[] endWords, int startLength, int endLength) {
+    private static int[][] getSubsequences(String[] startWords, String[] endWords) {
+        int startLength = startWords.length;
+        int endLength = endWords.length;
         int[][] subsequences = new int[startLength + 1][endLength + 1];
 
 

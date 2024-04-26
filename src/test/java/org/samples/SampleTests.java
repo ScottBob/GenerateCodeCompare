@@ -1,11 +1,9 @@
 package org.samples;
 
 
-import com.spun.util.Tuple;
 import com.spun.util.io.FileUtils;
 import org.approvaltests.Approvals;
 import org.approvaltests.core.Options;
-import org.approvaltests.reporters.AutoApproveReporter;
 import org.approvaltests.reporters.DiffMergeReporter;
 import org.approvaltests.reporters.QuietReporter;
 import org.approvaltests.reporters.UseReporter;
@@ -13,8 +11,6 @@ import org.approvaltests.reporters.windows.BeyondCompareReporter;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @UseReporter(QuietReporter.class)
 public class SampleTests
