@@ -3,6 +3,6 @@
     {
       DataBase database = initializeDatabase(); // -
       MailServer mailServer = initializeMailServer();
-      sendOutSeniorDiscounts( mailServer, database ); // *
+      sendOutSeniorDiscounts(mailServer, database); // *
       Approvals.verifyAll("", mailServer.getRecipients());
     }

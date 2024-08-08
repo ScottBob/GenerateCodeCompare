@@ -43,6 +43,18 @@ public class SampleTests
   }
 
   @Test
+  public void testFullyModifiedLine()
+  {
+    var snippet1 = """
+      DataBase database = initializeDatabase(); // -
+      """;
+    var snippet2 = """
+      Loader<List<Customer>> mailingList = () -> List.of(new Customer("Bob"), new Customer("Mary"), new Customer("Tom")); // +
+      """;
+    Approvals.verify(CodeCompare.generateMarkdown(snippet1, snippet2));
+  }
+
+  @Test
   @UseReporter(BeyondCompareReporter.class)
   public void testDiffCodeWithoutSpaces()
   {

@@ -13,13 +13,16 @@ public class Diff {
         List<Line> diffs1 = new ArrayList<>();
         int startIndex = 0;
         int endIndex = 0;
-        while (startIndex < startingLines.size() && endIndex < endingLines.size()) {
+        while (startIndex < startingLines.size() || endIndex < endingLines.size()) {
             String startLine = getLine(startingLines, startIndex);
             String endLine = getLine(endingLines, endIndex);
             if (startLine.equals(endLine)) {
                 diffs1.add(Line.of(startLine));
                 startIndex++;
                 endIndex++;
+            } else if (isLineRemoved(startLine)) {
+                diffs1.add(Line.removed(removeTrailingInfo(startLine)));
+                startIndex++;
             } else if (isLineAdded(startLine)) {
                 diffs1.add(Line.add(removeTrailingInfo(startLine)));
                 startIndex++;
@@ -30,9 +33,6 @@ public class Diff {
                 diffs1.add(createModifiedLine(removeTrailingInfo(startLine), removeTrailingInfo(endLine)));
                 startIndex++;
                 endIndex++;
-            } else if (isLineRemoved(startLine)) {
-                diffs1.add(Line.removed(removeTrailingInfo(startLine)));
-                startIndex++;
             } else {
                 throw new RuntimeException("Unrecognized line:\nStart: " + startLine + "\n  End: " + endLine +"\n ChangeLines need to be marked with either a // + - *");
             }

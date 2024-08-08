@@ -3,6 +3,6 @@
     {
       Loader<List<Customer>> mailingList = () -> List.of(new Customer("Bob"), new Customer("Mary"), new Customer("Tom")); // +
       MailServer mailServer = initializeMailServer();
-      sendOutSeniorDiscounts( mailServer, mailingList ); // *
+      sendOutSeniorDiscounts(mailServer, mailingList); // *
       Approvals.verifyAll("", mailServer.getRecipients());
     }
