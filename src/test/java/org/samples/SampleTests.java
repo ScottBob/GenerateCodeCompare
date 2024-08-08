@@ -41,6 +41,32 @@ public class SampleTests
           """;
     Approvals.verify(CodeCompare.generateMarkdown(snippet1, snippet2));
   }
+
+  @Test
+  @UseReporter(BeyondCompareReporter.class)
+  public void testDiffCodeWithoutSpaces()
+  {
+    var snippet1 = """
+           call("fred"); // *
+          """;
+    var snippet2 = """
+           call("scott"); // *
+          """;
+    var diff = Diff.diffStrings(snippet1, snippet2);
+    Approvals.verify(CodeCompare.generateMarkdown(diff));
+  }
+
+  @Test
+  @UseReporter(BeyondCompareReporter.class)
+  public void testTokenizeLine()
+  {
+    var snippet1 = """
+           call("fred"); // *
+          """;
+    var diff = Diff.tokenizeLine(snippet1);
+    Approvals.verifyAll("", diff);
+  }
+
   @Test
   @UseReporter(BeyondCompareReporter.class)
   public void testDiffCode()
@@ -90,8 +116,9 @@ public class SampleTests
   public void testModifiedLine() {
     var expected = """
         List<Customer> seniorCustomers =  (CONSTANT)
-      database.getSeniorCustomers(); (REMOVED)
-      seniorCustomerLoader.load(); (ADDED)
+      database.getSeniorCustomers (REMOVED)
+      seniorCustomerLoader.load (ADDED)
+      (); (CONSTANT)
       """;
     String start = "  List<Customer> seniorCustomers = database.getSeniorCustomers();";
     String end = "  List<Customer> seniorCustomers = seniorCustomerLoader.load();";
@@ -100,7 +127,7 @@ public class SampleTests
     Approvals.verify(actual.toString(), new Options().inline(expected));
   }
 
-//  @Test
+  @Test
   public void testCreateTemp() {
     Approvals.verify(CodeCompare.generateMarkdown(FileUtils.readFile("src/test/java/org/samples/a.txt"), FileUtils.readFile("src/test/java/org/samples/b.txt")));
   }

@@ -72,8 +72,8 @@ public class Diff {
 
 
     public static Line createModifiedLine(String start, String end) {
-        String[] startWords = start.split("(?<=\\s+)");
-        String[] endWords = end.split("(?<=\\s+)");
+        String[] startWords = tokenizeLine(start);
+        String[] endWords = tokenizeLine(end);
 
         List<Change> changes = calculateChanges(startWords, endWords);
 
@@ -93,6 +93,10 @@ public class Diff {
         }
 
         return line.reduce();
+    }
+
+    public static String[] tokenizeLine(String start) {
+        return start.split("(?<=\\s)|(?=\\s)|(?<=\\()|(?=\\()|(?<=\\))|(?=\\))", -1);
     }
 
     private static List<Change> calculateChanges(String[] startWords, String[] endWords) {
